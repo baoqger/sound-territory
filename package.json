@@ -1,0 +1,22 @@
+{
+  "name": "sound-territory",
+  "version": "1.0.0",
+  "description": "Map visualisation experiments with Pixi.js (WebGL), Leaflet and D3.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/baoqger/sound-territory.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/baoqger/sound-territory/issues"
+  },
+  "homepage": "https://github.com/baoqger/sound-territory#readme",
+  "dependencies": {
+    "express": "^4.16.3"
+  }
+}
