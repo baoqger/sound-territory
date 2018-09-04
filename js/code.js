@@ -6,15 +6,17 @@
   var kyoto = [34.980603, 135.761296];
   var bogota = [4.608943, -74.070867];
 
-  var leafletMap = L.map('mapid', {
+  var leafletMap = L.map('mapid', { // mapid is the id property of div element in index.html file
       minZoom: 1,
       maxZoom: 20
     })
     .setView(vlc)
     .setZoom(13);
 
-
+  // no PIXI application object, since in this case, PIXI is working with leaflet.
+  // a container represents a collection of display objects. that act as a container for other objects
   var pixiContainer = new PIXI.Container(),
+    // runs an update loop that other objects listen to.
     ticker = new PIXI.ticker.Ticker(),
     firstDraw = true,
     prevZoom,
@@ -25,19 +27,19 @@
     container;
   ticker.speed = 0.5;
 
+  // self exectution function
   $(function() {
-
+    // d3-fetch api support json, csv, tsv.
     d3.json('maps/vlc-map.json', function(error, datacoords) {
       if (error) throw error;
-
+      //
       var topolayer = new L.TopoJSON();
-      topolayer.addData(datacoords);
-
+      topolayer.addData(datacoords);// adddata method of topolayer object
       var arrGeo = [];
       for (var keys in topolayer._layers) {
         arrGeo.push(topolayer._layers[keys]._latlngs);
       }
-
+      console.log(arrGeo)
       pixiLayer(arrGeo);
 
     }); //---GET DATA
@@ -49,17 +51,21 @@
   function pixiLayer(data) {
 
     var loader = new PIXI.loaders.Loader();
+    // chainable 'add' to enqueue a resource
     loader.add('iris', 'assets/iris.png');
-
+    // load method loads the queue of resources, and calls the passed in callback called once all resources have loaded
     loader.load(function(loader, resources) {
-
+      // L.PixiOverlay.js support the pixioverlay methods
+      // create an overlay
+      // L.pixiOverlay(drawcallback, container, options)
       var pixiOverlay = L.pixiOverlay(function(utils) {
-
-          var zoom = utils.getMap().getZoom();
-          container = utils.getContainer();
-          renderer = utils.getRenderer();
-          var project = utils.latLngToLayerPoint;
-          var scale = utils.getScale();
+          // drawing callback function: drawcallback(utils, eventorcustomdata)
+          // utils - helper object, contains methods to work with layers coordinate system and scaling
+          var zoom = utils.getMap().getZoom(); // getmap return the current map
+          container = utils.getContainer(); // return the pixi container used in the overlay
+          renderer = utils.getRenderer(); // return the current pixi render
+          var project = utils.latLngToLayerPoint; // return L.point projected from L.LatLng in the coordinate system of the overlay
+          var scale = utils.getScale(); // return the current scale factor of the overlay or the scale factor associated to zoom value
 
           if (frame) {
             frame = null;
@@ -73,6 +79,8 @@
 
               var numpart = data.length;
               //var numpart = 10;
+              // particlecontainer class is a really fast version of the container built solely for speed
+              // so use when you need a lot of sprites or particles
               var ridersParticles = new PIXI.particles.ParticleContainer(numpart);
               container.addChild(ridersParticles);
 
@@ -82,7 +90,7 @@
               this.loopLength = 5;
 
               var counterRepeat = 0;
-
+              // d3 max compute the maximum value in an array
               var max = d3.max(data, function(d) {
                 return d.length;
               });
@@ -96,27 +104,31 @@
               var hUnit = 18;
               var indexStart = 1;
               var indexEnd = 24;
-            
-              for (var i = totalRiders; i--;) {
 
+              for (var i = totalRiders; i--;) {
+                // a texture stores the information that represents an image or part of an image
                 var texture = new PIXI.Texture(resources.iris.texture);
+                // rectangle object is an area defined by its position, the top-left corner point and its width and height
+                // 从那个png图片中随机生成一个颜色的sprite
                 var rect1 = new PIXI.Rectangle(wUnit * (parseInt(getRnd(indexEnd, indexStart))), 0, wUnit, hUnit);
                 texture.frame = rect1;
-
+                // the sprite object is the base for all textured objects that are rendered to the screen
                 var rider = new PIXI.Sprite(texture);
-
+                // the position of the rider
                 var pos = [data[starterNum + i][0].lat, data[starterNum + i][0].lng];
-
+                // the anchor sets the origin point of the texture
                 rider.anchor.set(0.5);
+                // the scale factor of the object
                 rider.scale.set(1 * 0.028);
                 rider.transform.position.set(project(pos).x, project(pos).y);
 
-                //-----RIDRES ARRAYS 
+                //-----RIDRES ARRAYS
                 ridersArr.push(rider);
                 ridersParticles.addChild(rider);
 
 
-
+                // data本身的数据结构可以研究下 topojson
+                // 判断每个rider是否还可以移动,每一个元素对应每一个位置
                 if (counterRepeat + 1 < data[starterNum + i].length) {
                   stateArr.push(true);
                 } else {
@@ -124,7 +136,7 @@
                 }
 
               }
-
+              // 判断是否还需要更新
               this.onRepeat = function() {
 
                 counterRepeat++;
@@ -138,11 +150,12 @@
                   }
                 }
               };
+              // 更新的操作，改变每个rider的位置
               this.updateHandler = function(value) {
 
 
                 for (var i = totalRiders; i--;) {
-
+                  // 如果还能更新
                   if (stateArr[i]) {
 
                     var pos = [data[starterNum + i][counterRepeat].lat,
@@ -154,12 +167,14 @@
 
 
                 }
+                // 更新渲染操作
                 renderer.render(container);
 
 
               }
             } //---RIDERS
 
+            // 生成一个实例
             var ridersGroup = new Riders();
 
             function drawCity() {
@@ -249,6 +264,7 @@
 
         },
         pixiContainer);
+      // add the overlay to the map
       pixiOverlay.addTo(leafletMap);
 
 
@@ -284,12 +300,13 @@
   function getRnd(max, min) {
     return Math.random() * (max - min) + min;
   }
-
+  // support topojson format
   function extendTopoJson() {
     L.TopoJSON = L.GeoJSON.extend({
       addData: function(jsonData) {
         if (jsonData.type === "Topology") {
           for (key in jsonData.objects) {
+            // topojson is global variable in topojson.v1.min.js library
             geojson = topojson.feature(jsonData, jsonData.objects[key]);
             L.GeoJSON.prototype.addData.call(this, geojson);
           }
