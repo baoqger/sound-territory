@@ -178,11 +178,11 @@
             var ridersGroup = new Riders();
 
             function drawCity() {
-
+              // the graphics class contains methods used to draw primitive shapes such as lines, circles and rectangles
               var buffer = new PIXI.Graphics();
               container.addChild(buffer);
 
-              drawPolyline(data);
+              drawPolyline(data); // data中有城市地图信息？
 
               function drawPolyline(arr) {
 
@@ -207,10 +207,12 @@
 
                 } //---end for
 
+                console.log('polygon', polys)
+
                 for (var i = polys.length; i--;) {
                   buffer.drawPolygon(polys[i]);
                 }
-
+                // close spinner
                 $('.spinner').addClass('stop');
 
               } //---FINAL DRAW POLYLINE
@@ -222,11 +224,11 @@
 
 
             //---ANIMATION
-            ticker.speed = 0.5;
+            ticker.speed = 0.5; // 0.5 equivalent to 30 fps
             var oldDelta = 0;
             var newDelta = 0;
 
-
+            // register a handler for tick events. calls continuously unless it is removed or the ticker is stopped
             ticker.add(function(deltaTime) {
 
               if (ridersGroup.val > ridersGroup.loopLength) {
